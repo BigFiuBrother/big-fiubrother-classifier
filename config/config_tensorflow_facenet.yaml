@@ -1,0 +1,2 @@
+face_embedder:
+  type: 'tensorflow_facenet'
