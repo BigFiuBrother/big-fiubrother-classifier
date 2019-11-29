@@ -1,0 +1,31 @@
+consumer:
+  host: localhost
+  username: fiubrother
+  password: alwayswatching
+  queue: detected_faces
+
+face_embedder:
+  face_embedder:
+    type: 'movidius_facenet'
+    movidius_id: 1
+    longrange: 1
+  db:
+    host: localhost
+    database: big_fiubrother
+    username: postgres
+    password: password
+
+face_classifier:
+  face_classifier: '/home/gabriel/Desktop/bigfiubrother/big-fiubrother-classifier/testing/output/mvds_facenet/svclassifier_edu_gabo.pkl'
+  db:
+    host: localhost
+    database: big_fiubrother
+    username: postgres
+    password: password
+
+publisher_to_scheduler:
+  host: localhost
+  username: fiubrother
+  password: alwayswatching
+  exchange: fiubrother
+  routing_key: scheduler

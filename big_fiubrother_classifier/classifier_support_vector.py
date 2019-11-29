@@ -23,9 +23,9 @@ class SVClassifier:
 
         predictions = self.model.predict_proba([embedding])
         best_class_index = np.argmax(predictions, axis=1)[0]
-        best_class_probability = predictions[np.arange(1), best_class_index]
+        best_class_probability = predictions[np.arange(1), best_class_index][0]
 
-        return self.class_names[best_class_index], best_class_probability
+        return best_class_index, best_class_probability
 
     @staticmethod
     def load(save_file):

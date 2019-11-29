@@ -7,9 +7,12 @@ from big_fiubrother_core import (
     setup
 )
 from big_fiubrother_classifier import (
-    FaceEmbedderThread,
-    FaceClassifierThread
+    FaceEmbeddingTask,
+    FaceClassificationTask
 )
+# magia negra para que funcione pickle
+from big_fiubrother_classifier.classifier_support_vector import SVClassifier
+
 
 if __name__ == "__main__":
     configuration = setup('Big Fiubrother Face Classifier Application')
@@ -24,17 +27,17 @@ if __name__ == "__main__":
                                    output_queue=consumer_to_embedder_queue)
 
     embedder_thread = StoppableThread(
-        FaceEmbedderThread(configuration['face_embedder'],
-                           input_queue=consumer_to_embedder_queue,
-                           output_queue=embedder_to_classifier_queue))
+        FaceEmbeddingTask(configuration=configuration['face_embedder'],
+                          input_queue=consumer_to_embedder_queue,
+                          output_queue=embedder_to_classifier_queue))
 
     classifier_thread = StoppableThread(
-        FaceClassifierThread(configuration['face_classifier'],
-                             input_queue=embedder_to_classifier_queue,
-                             output_queue=classifier_to_publisher_queue))
+        FaceClassificationTask(configuration=configuration['face_classifier'],
+                               input_queue=embedder_to_classifier_queue,
+                               output_queue=classifier_to_publisher_queue))
 
     publisher_thread = StoppableThread(
-        PublishToRabbitMQ(configuration=configuration['publisher'],
+        PublishToRabbitMQ(configuration=configuration['publisher_to_scheduler'],
                           input_queue=classifier_to_publisher_queue))
 
     signal_handler = SignalHandler(callback=consumer.stop)

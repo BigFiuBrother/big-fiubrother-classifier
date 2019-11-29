@@ -1,0 +1,2 @@
+from big_fiubrother_classifier.face_embedding_task import FaceEmbeddingTask
+from big_fiubrother_classifier.face_classification_task import FaceClassificationTask

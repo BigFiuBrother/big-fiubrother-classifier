@@ -20,12 +20,12 @@ class FaceEmbedderFactory:
     @staticmethod
     def build_mvds_facenet():
         config_path = os.path.dirname(os.path.realpath(__file__)) + "/../config/config_mvds_facenet.yaml"
-        return FaceEmbedderFactory.build(config_path)
+        return FaceEmbedderFactory.build(FaceEmbedderFactory._read_config_file(config_path))
 
     @staticmethod
     def build_tensorflow_facenet():
         config_path = os.path.dirname(os.path.realpath(__file__)) + "/../config/config_tensorflow_facenet.yaml"
-        return FaceEmbedderFactory.build(config_path)
+        return FaceEmbedderFactory.build(FaceEmbedderFactory._read_config_file(config_path))
 
     @staticmethod
     def _read_config_file(path):

@@ -1,4 +1,4 @@
-from big_fiubrother_classification.face_embedder_factory import FaceEmbedderFactory
+from big_fiubrother_classifier.face_embedder_factory import FaceEmbedderFactory
 import sys
 import os
 

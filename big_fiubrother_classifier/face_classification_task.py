@@ -4,8 +4,10 @@ from big_fiubrother_core.db import (
     Face
 )
 from big_fiubrother_core.messages import (
-    FaceClassificationMessage
+    FaceClassificationMessage,
+    ProcessedFaceMessage
 )
+import big_fiubrother_classifier.classifier_support_vector
 from big_fiubrother_classifier.classifier_support_vector import SVClassifier
 import cv2
 import numpy as np
@@ -27,6 +29,9 @@ class FaceClassificationTask(QueueTask):
         self.face_classifier = SVClassifier.load(self.configuration['face_classifier'])
         self.db = Database(self.configuration['db'])
 
+    def close(self):
+        self.db.close()
+
     def execute_with(self, message):
         face_classification_message: FaceClassificationMessage = self.input_queue.get()
 
@@ -36,17 +41,21 @@ class FaceClassificationTask(QueueTask):
             embedding = face_classification_message.face_embedding
 
             # Do face classification
+            print("- Performing classification")
             classification_index, classification_probability = self.face_classifier.predict(embedding)
 
             # Update database face row with result
             face_id = face_classification_message.face_id
             face: Face = self.db.get(Face, face_id)
-            face.classification_id = classification_index
-            face.probability_classification = classification_probability
+            face.classification_id = int(classification_index)
+            face.probability_classification = float(classification_probability)
+            print(type(face.classification_id))
+            print(type(face.probability_classification))
             self.db.update()
 
             # Notify of face analysis completion
-            #self.output_queue.put(interpolator_notification_message)
+            scheduler_message = ProcessedFaceMessage(face_id) # cambiar a frame id?
+            self.output_queue.put(scheduler_message)
 
     def _stop(self):
         self.input_queue.put(None)

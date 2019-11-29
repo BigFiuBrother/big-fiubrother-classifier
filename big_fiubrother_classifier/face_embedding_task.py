@@ -26,6 +26,10 @@ class FaceEmbeddingTask(QueueTask):
         self.face_embedder = FaceEmbedderFactory.build(self.configuration['face_embedder'])
         self.db = Database(self.configuration['db'])
 
+    def close(self):
+        self.face_embedder.close()
+        self.db.close()
+
     def execute_with(self, message):
         face_embedding_message: FaceEmbeddingMessage = message
 
@@ -37,11 +41,12 @@ class FaceEmbeddingTask(QueueTask):
             video_chunk_id = face_embedding_message.video_chunk_id
 
             # Perform face embedding
+            print("- Performing embedding")
             embedding = self.face_embedder.get_embedding_mem(face)
 
             # Insert result into database
-            face_embedding = FaceEmbedding(face_id=face_id, embedding=embedding)
-            face_embedding_id = self.db.add(face_embedding)
+            face_embedding = FaceEmbedding(face_id=face_id, embedding=list(embedding.astype(float)))
+            self.db.add(face_embedding)
 
             # Queue face classification job
             face_classification_message = FaceClassificationMessage(video_chunk_id, face_id, embedding)
