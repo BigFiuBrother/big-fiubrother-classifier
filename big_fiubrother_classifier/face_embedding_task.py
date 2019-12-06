@@ -33,24 +33,24 @@ class FaceEmbeddingTask(QueueTask):
     def execute_with(self, message):
         face_embedding_message: FaceEmbeddingMessage = message
 
-        if face_embedding_message is not None:
+        # Get face
+        face = face_embedding_message.face_bytes
+        face_id = face_embedding_message.detected_face_id
+        video_chunk_id = face_embedding_message.video_chunk_id
 
-            # Get face
-            face = face_embedding_message.face_bytes
-            face_id = face_embedding_message.detected_face_id
-            video_chunk_id = face_embedding_message.video_chunk_id
+        print(face)
+        # Perform face embedding
+        #print("- Performing embedding - face_id: " + str(face_embedding_message.detected_face_id))
+        embedding = self.face_embedder.get_embedding_mem(face)
+        #embedding = np.array([1, 2, 3])
 
-            # Perform face embedding
-            print("- Performing embedding")
-            embedding = self.face_embedder.get_embedding_mem(face)
+        # Insert result into database
+        face_embedding = FaceEmbedding(face_id=face_id, embedding=list(embedding.astype(float)))
+        self.db.add(face_embedding)
 
-            # Insert result into database
-            face_embedding = FaceEmbedding(face_id=face_id, embedding=list(embedding.astype(float)))
-            self.db.add(face_embedding)
-
-            # Queue face classification job
-            face_classification_message = FaceClassificationMessage(video_chunk_id, face_id, embedding)
-            self.output_queue.put(face_classification_message)
+        # Queue face classification job
+        face_classification_message = FaceClassificationMessage(video_chunk_id, face_id, embedding)
+        self.output_queue.put(face_classification_message)
 
     def _stop(self):
         self.input_queue.put(None)

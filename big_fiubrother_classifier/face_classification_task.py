@@ -23,39 +23,43 @@ class FaceClassificationTask(QueueTask):
         self.db = None
         self.face_classifier = None
 
+        self.threshold = 0.0
+
     def init(self):
         # load pre-trained classifier from local file?
         # load from database?
-        self.face_classifier = SVClassifier.load(self.configuration['face_classifier'])
+        self.face_classifier = SVClassifier.load(self.configuration['face_classifier']['model'])
         self.db = Database(self.configuration['db'])
+        self.threshold = self.configuration['face_classifier']['threshold']
 
     def close(self):
         self.db.close()
 
     def execute_with(self, message):
-        face_classification_message: FaceClassificationMessage = self.input_queue.get()
+        face_classification_message: FaceClassificationMessage = message
 
-        if face_classification_message is not None:
+        # Get message
+        embedding = face_classification_message.face_embedding
 
-            # Get message
-            embedding = face_classification_message.face_embedding
+        # Do face classification
+        #print("- Performing classification - face_id: " + str(face_classification_message.face_id))
+        classification_index, classification_probability = self.face_classifier.predict(embedding)
+        #classification_index, classification_probability = [0, 0.9]
+        is_match = classification_probability > self.threshold
 
-            # Do face classification
-            print("- Performing classification")
-            classification_index, classification_probability = self.face_classifier.predict(embedding)
+        # Update database face row with result
+        face_id = face_classification_message.face_id
+        face: Face = self.db.get(Face, face_id)
+        face.classification_id = int(classification_index)
+        face.probability_classification = float(classification_probability)
+        face.is_match = is_match
+        #print(type(face.classification_id))
+        #print(type(face.probability_classification))
+        self.db.update()
 
-            # Update database face row with result
-            face_id = face_classification_message.face_id
-            face: Face = self.db.get(Face, face_id)
-            face.classification_id = int(classification_index)
-            face.probability_classification = float(classification_probability)
-            print(type(face.classification_id))
-            print(type(face.probability_classification))
-            self.db.update()
-
-            # Notify of face analysis completion
-            scheduler_message = ProcessedFaceMessage(face_id) # cambiar a frame id?
-            self.output_queue.put(scheduler_message)
+        # Notify of face analysis completion
+        scheduler_message = ProcessedFaceMessage(frame_id=face.frame_id) # cambiar a frame id?
+        self.output_queue.put(scheduler_message)
 
     def _stop(self):
         self.input_queue.put(None)

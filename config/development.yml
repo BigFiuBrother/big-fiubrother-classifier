@@ -16,7 +16,9 @@ face_embedder:
     password: password
 
 face_classifier:
-  face_classifier: '/home/gabriel/Desktop/bigfiubrother/big-fiubrother-classifier/testing/output/mvds_facenet/svclassifier_edu_gabo.pkl'
+  face_classifier:
+    model: '/home/gabriel/Desktop/bigfiubrother/big-fiubrother-classifier/testing/output/mvds_facenet/svclassifier_edu_gabo.pkl'
+    threshold: 0.7
   db:
     host: localhost
     database: big_fiubrother
