@@ -44,19 +44,24 @@ if __name__ == "__main__":
 
     print('[*] Configuration finished. Starting big_fiubrother_classifier!')
 
+    # Start worker threads
     embedder_thread.start()
     classifier_thread.start()
     publisher_thread.start()
+
+    # Start consumer on main thread
     consumer.init()
     consumer.execute()
 
     # Signal Handled STOP
     consumer.close()
 
+    # Stop worker threads
     embedder_thread.stop()
     classifier_thread.stop()
     publisher_thread.stop()
 
+    # Wait for worker threads
     embedder_thread.wait()
     classifier_thread.wait()
     publisher_thread.wait()

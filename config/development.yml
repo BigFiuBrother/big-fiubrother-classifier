@@ -24,6 +24,9 @@ face_classifier:
     database: big_fiubrother
     username: postgres
     password: password
+  synchronization:
+    host: localhost
+    port: 2181
 
 publisher_to_scheduler:
   host: localhost
