@@ -38,9 +38,8 @@ class FaceEmbeddingTask(QueueTask):
         face_id = face_embedding_message.detected_face_id
         video_chunk_id = face_embedding_message.video_chunk_id
 
-        print(face)
         # Perform face embedding
-        #print("- Performing embedding - face_id: " + str(face_embedding_message.detected_face_id))
+        print("- Performing embedding - face_id: " + str(face_embedding_message.detected_face_id))
         embedding = self.face_embedder.get_embedding_mem(face)
         #embedding = np.array([1, 2, 3])
 

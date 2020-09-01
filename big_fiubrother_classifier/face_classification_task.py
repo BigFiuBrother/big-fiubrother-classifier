@@ -5,8 +5,7 @@ from big_fiubrother_core.db import (
 )
 from big_fiubrother_core.messages import (
     FaceClassificationMessage,
-    ProcessedFaceMessage,
-    ProcessedFrameMessage
+    AnalyzedVideoChunkMessage
 )
 import big_fiubrother_classifier.classifier_support_vector
 from big_fiubrother_classifier.classifier_support_vector import SVClassifier
@@ -45,9 +44,10 @@ class FaceClassificationTask(QueueTask):
 
         # Get message
         embedding = face_classification_message.face_embedding
+        print()
 
         # Do face classification
-        #print("- Performing classification - face_id: " + str(face_classification_message.face_id))
+        print("- Performing classification - face_id: " + str(face_classification_message.face_id))
         classification_index, classification_probability = self.face_classifier.predict(embedding)
         #classification_index, classification_probability = [0, 0.9]
         is_match = classification_probability > self.threshold
@@ -62,28 +62,21 @@ class FaceClassificationTask(QueueTask):
         #print(type(face.probability_classification))
         self.db.update()
 
+        print("- Classification id: " + str(face.classification_id) + ", prob: " + str(face.probability_classification))
+
         # Face analysis sync completion
-        self.process_synchronizer.complete_face_task(
+        should_notify_scheduler = self.process_synchronizer.complete_face_task(
             video_chunk_id,
             face.frame_id,
             face_id
         )
+        print(should_notify_scheduler)
 
-        # Check for frame analysis completion
-        is_frame_finished, remaining_tasks = self.process_synchronizer.is_frame_task_finished(video_chunk_id, face.frame_id)
-
-        if is_frame_finished:
-
-            # Frame task sync completion
-            should_notify_scheduler = self.process_synchronizer.complete_frame_task(
-                video_chunk_id,
-                face.frame_id
-            )
-
-            if should_notify_scheduler:
-                # Notify scheduler of frame analysis completion
-                processed_frame_message = ProcessedFrameMessage(video_chunk_id)
-                self.output_queue.put(processed_frame_message)
+        if should_notify_scheduler:
+            print("- Notifying interpolator of video chunk analysis completion, id: " + str(video_chunk_id))
+            # Notify scheduler of video chunk analysis completion
+            scheduler_notification = AnalyzedVideoChunkMessage(video_chunk_id)
+            self.output_queue.put(scheduler_notification)
 
     def _stop(self):
         self.input_queue.put(None)

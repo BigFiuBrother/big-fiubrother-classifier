@@ -12,8 +12,8 @@ face_embedder:
   db:
     host: localhost
     database: big_fiubrother
-    username: postgres
-    password: password
+    username: fiubrother
+    password: alwayswatching
 
 face_classifier:
   face_classifier:
@@ -22,8 +22,8 @@ face_classifier:
   db:
     host: localhost
     database: big_fiubrother
-    username: postgres
-    password: password
+    username: fiubrother
+    password: alwayswatching
   synchronization:
     host: localhost
     port: 2181
@@ -33,4 +33,8 @@ publisher_to_scheduler:
   username: fiubrother
   password: alwayswatching
   exchange: fiubrother
-  routing_key: scheduler
+  routing_key: analysed_video_chunks
+
+logging:
+  host: localhost
+  port: 12201
